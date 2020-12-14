@@ -3,32 +3,86 @@
 
 namespace videoformat {
 
+namespace {
+
+IMFMediaType* _createMediaType(UINT32 width, UINT32 height, UINT32 fps) {
+    IMFMediaType* pMediaType = nullptr;
+    HRESULT hr = MFCreateMediaType(&pMediaType);
+    if (FAILED(hr)) {
+        SafeRelease(&pMediaType);
+        return nullptr;
+    }
+
+    hr = pMediaType->SetGUID(MF_MT_MAJOR_TYPE, MFMediaType_Video);
+    if (FAILED(hr)) {
+        SafeRelease(&pMediaType);
+        return nullptr;
+    }
+
+    hr = pMediaType->SetUINT32(MF_MT_INTERLACE_MODE, MFVideoInterlace_Progressive);
+    if (FAILED(hr)) {
+        SafeRelease(&pMediaType);
+        return nullptr;
+    }
+
+    hr = MFSetAttributeSize(pMediaType, MF_MT_FRAME_SIZE, width, height);
+    if (FAILED(hr)) {
+        SafeRelease(&pMediaType);
+        return nullptr;
+    }
+
+    hr = MFSetAttributeRatio(pMediaType, MF_MT_FRAME_RATE, fps, 1);
+    if (FAILED(hr)) {
+        SafeRelease(&pMediaType);
+        return nullptr;
+    }
+
+    hr = MFSetAttributeRatio(pMediaType, MF_MT_PIXEL_ASPECT_RATIO, 1, 1);
+    if (FAILED(hr)) {
+        SafeRelease(&pMediaType);
+        return nullptr;
+    }
+
+    return pMediaType;
+}
+
+}
+
 IMFMediaType* createOutputMediaType(UINT32 width, UINT32 height, UINT32 fps)
 {
-    IMFMediaType* pMediaTypeOut = nullptr;
-    HRESULT hr = MFCreateMediaType(&pMediaTypeOut);
-    hr = pMediaTypeOut->SetGUID(MF_MT_MAJOR_TYPE, MFMediaType_Video);
-    hr = pMediaTypeOut->SetGUID(MF_MT_SUBTYPE, MFVideoFormat_H264);
+    IMFMediaType* pMediaTypeOut = _createMediaType(width, height, fps);
+    if (!pMediaTypeOut) {
+        return nullptr;
+    }
+
+    HRESULT hr = pMediaTypeOut->SetGUID(MF_MT_SUBTYPE, MFVideoFormat_H264);
+    if (FAILED(hr)) {
+        SafeRelease(&pMediaTypeOut);
+        return nullptr;
+    }
+
     constexpr UINT32 VIDEO_BIT_RATE = 800000;
     hr = pMediaTypeOut->SetUINT32(MF_MT_AVG_BITRATE, VIDEO_BIT_RATE);
-    hr = pMediaTypeOut->SetUINT32(MF_MT_INTERLACE_MODE, MFVideoInterlace_Progressive);
-    hr = MFSetAttributeSize(pMediaTypeOut, MF_MT_FRAME_SIZE, width, height);
-    hr = MFSetAttributeRatio(pMediaTypeOut, MF_MT_FRAME_RATE, fps, 1);
-    hr = MFSetAttributeRatio(pMediaTypeOut, MF_MT_PIXEL_ASPECT_RATIO, 1, 1);
+    if (FAILED(hr)) {
+        SafeRelease(&pMediaTypeOut);
+        return nullptr;
+    }
 
     return pMediaTypeOut;
 }
 
 IMFMediaType* createInputMediaType(UINT32 width, UINT32 height, UINT32 fps)
 {
-    IMFMediaType* pMediaTypeIn = nullptr;
-    HRESULT hr = MFCreateMediaType(&pMediaTypeIn);
-    hr = pMediaTypeIn->SetGUID(MF_MT_MAJOR_TYPE, MFMediaType_Video);
-    hr = pMediaTypeIn->SetGUID(MF_MT_SUBTYPE, MFVideoFormat_ARGB32);
-    hr = pMediaTypeIn->SetUINT32(MF_MT_INTERLACE_MODE, MFVideoInterlace_Progressive);
-    hr = MFSetAttributeSize(pMediaTypeIn, MF_MT_FRAME_SIZE, width, height);
-    hr = MFSetAttributeRatio(pMediaTypeIn, MF_MT_FRAME_RATE, fps, 1);
-    hr = MFSetAttributeRatio(pMediaTypeIn, MF_MT_PIXEL_ASPECT_RATIO, 1, 1);
+    IMFMediaType* pMediaTypeIn = _createMediaType(width, height, fps);
+    if (!pMediaTypeIn) {
+        return nullptr;
+    }
+
+    HRESULT hr = pMediaTypeIn->SetGUID(MF_MT_SUBTYPE, MFVideoFormat_ARGB32);
+    if (FAILED(hr)) {
+        SafeRelease(&pMediaTypeIn);
+        return nullptr;
+    }
 
     return pMediaTypeIn;
 }
