@@ -6,10 +6,24 @@ CContext::CContext()
 	, m_pDevice(nullptr)
 	, m_pDeviceContext(nullptr)
 {
+	{
+		HRESULT hr = ::CoInitializeEx(nullptr, COINITBASE_MULTITHREADED | COINIT_DISABLE_OLE1DDE);
+		if (FAILED(hr)) {
+			return;
+		}
+	}
+	{
+		HRESULT hr = ::MFStartup(MF_VERSION, MFSTARTUP_LITE);
+		if (FAILED(hr)) {
+			return;
+		}
+	}
 }
 
 CContext::~CContext()
 {
+	::MFShutdown();
+	::CoUninitialize();
 }
 
 bool CContext::initialize(HANDLE hSurface)

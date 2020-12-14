@@ -53,6 +53,8 @@ int main(int argc, char* argv[])
     std::cout << "DwmRecorderTest" << std::endl;
     dwmrecorder::initialize(hFind);
 
+    dwmrecorder::start();
+
     dwmrecorder::finalize();
     return 0;
 }

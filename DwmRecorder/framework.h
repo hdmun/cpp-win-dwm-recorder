@@ -5,6 +5,15 @@
 #pragma comment(lib, "d3d11.lib")
 #include <d3d11.h>
 
+#include <mfapi.h>
+#include <mfidl.h>
+#include <mfreadwrite.h>
+#include <mferror.h>
+
+#pragma comment(lib, "mfreadwrite")
+#pragma comment(lib, "mfplat")
+#pragma comment(lib, "mfuuid")
+
 #include <iostream>
 
 #define LOG(format, ...) _log(format "\n", __VA_ARGS__)
@@ -18,4 +27,12 @@ inline void _log(const char* format, ...)
 	vsprintf_s(buffer, 256, format, args);
 	OutputDebugStringA(buffer);
 	va_end(args);
+}
+
+template <class T> void SafeRelease(T** ppT)
+{
+	if (*ppT) {
+		(*ppT)->Release();
+		*ppT = NULL;
+	}
 }

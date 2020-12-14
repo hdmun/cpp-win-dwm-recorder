@@ -2,6 +2,7 @@
 #include "framework.h"
 #include "DwmRecorder.h"
 #include "Context.h"
+#include "Writer.h"
 
 extern "C"{
 namespace dwmrecorder
@@ -52,6 +53,34 @@ DWMRECORDER_API void __stdcall finalize()
 	LOG(__FUNCTION__);
 
 	g_ctx.finalize();
+}
+
+DWMRECORDER_API void __stdcall start()
+{
+	const UINT32 VIDEO_WIDTH = 640;
+	const UINT32 VIDEO_HEIGHT = 480;
+	const UINT32 VIDEO_FPS = 30;
+	const UINT64 VIDEO_FRAME_DURATION = 10 * 1000 * 1000 / VIDEO_FPS;
+	const UINT32 VIDEO_FRAME_COUNT = 20 * VIDEO_FPS;  // 20sec 30fps
+
+	CWriter writer(VIDEO_WIDTH, VIDEO_HEIGHT, VIDEO_FPS);
+
+	// Send frames to the sink writer.
+	LONGLONG rtStart = 0;
+	for (DWORD i = 0; i < VIDEO_FRAME_COUNT; ++i)
+	{
+		HRESULT hr = writer.writeFrame(rtStart);
+		if (FAILED(hr))
+		{
+			break;
+		}
+		rtStart += VIDEO_FRAME_DURATION;
+	}
+}
+
+DWMRECORDER_API void __stdcall stop()
+{
+	return DWMRECORDER_API void();
 }
 
 }
