@@ -2,6 +2,8 @@
 
 #define WIN32_LEAN_AND_MEAN
 #include <Windows.h>
+#pragma comment(lib, "d3d11.lib")
+#include <d3d11.h>
 
 #include <iostream>
 

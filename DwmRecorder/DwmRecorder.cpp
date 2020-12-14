@@ -1,6 +1,7 @@
 ﻿#include "pch.h"
 #include "framework.h"
 #include "DwmRecorder.h"
+#include "Context.h"
 
 extern "C"{
 namespace dwmrecorder
@@ -17,6 +18,8 @@ typedef BOOL(WINAPI* PFDwmGetDxSharedSurface)(
 
 
 PFDwmGetDxSharedSurface DwmGetDxSharedSurface = nullptr;
+CContext g_ctx;
+
 DWMRECORDER_API bool __stdcall initialize(HWND hWnd)
 {
 	LOG("%s, HWND: 0x%x", __FUNCTION__, hWnd);
@@ -41,12 +44,14 @@ DWMRECORDER_API bool __stdcall initialize(HWND hWnd)
 		return false;
 	}
 
-	return true;
+	return g_ctx.initialize(hSurface);
 }
 
 DWMRECORDER_API void __stdcall finalize()
 {
 	LOG(__FUNCTION__);
+
+	g_ctx.finalize();
 }
 
 }
