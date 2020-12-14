@@ -10,9 +10,13 @@
 #include <mfreadwrite.h>
 #include <mferror.h>
 
+#pragma comment(lib, "mf")
 #pragma comment(lib, "mfreadwrite")
 #pragma comment(lib, "mfplat")
 #pragma comment(lib, "mfuuid")
+
+#include <codecapi.h>
+#include <strmif.h>
 
 #include <iostream>
 #include <future>

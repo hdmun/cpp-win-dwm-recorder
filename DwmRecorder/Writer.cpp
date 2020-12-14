@@ -1,5 +1,6 @@
 #include "pch.h"
 #include "Writer.h"
+#include "Context.h"
 
 namespace videoformat {
 
@@ -89,35 +90,33 @@ IMFMediaType* createInputMediaType(UINT32 width, UINT32 height, UINT32 fps)
 
 }
 
+namespace {
+
+HRESULT SetCodecAttributeU32(ICodecAPI* pCodec, const GUID& guid, UINT32 value)
+{
+    VARIANT val;
+    val.vt = VT_UI4;
+    val.uintVal = value;
+    return pCodec->SetValue(&guid, &val);
+}
+
+}
+
+
 CWriter::CWriter(UINT32 width, UINT32 height, UINT32 fps)
     : m_width(width)
     , m_height(height)
     , m_fps(fps)
-    , m_frameDuration(10 * 1000 * 1000 / fps)
     , m_streamIndex(0)
     , m_pWriter(nullptr)
-    , __videoFrameBuffer(new DWORD[width * height])
 {
-    for (DWORD i = 0; i < width * height; ++i) {
-        __videoFrameBuffer[i] = 0x0000FF00;
+    initializeSinkWriter();
+    initializeEncoder();
+
+    HRESULT hr = m_pWriter->BeginWriting();
+    if (FAILED(hr)) {
+        // assert!
     }
-
-    HRESULT hr = MFCreateSinkWriterFromURL(L"output.mp4", NULL, NULL, &m_pWriter);
-
-    IMFMediaType* pMediaTypeOut = videoformat::createOutputMediaType(width, height, fps);
-    if (pMediaTypeOut) {
-        hr = m_pWriter->AddStream(pMediaTypeOut, &m_streamIndex);
-    }
-
-    IMFMediaType* pMediaTypeIn = videoformat::createInputMediaType(width, height, fps);
-    if (pMediaTypeIn) {
-        hr = m_pWriter->SetInputMediaType(m_streamIndex, pMediaTypeIn, NULL);
-    }
-
-    hr = m_pWriter->BeginWriting();
-
-    SafeRelease(&pMediaTypeOut);
-    SafeRelease(&pMediaTypeIn);
 }
 
 CWriter::~CWriter()
@@ -126,51 +125,80 @@ CWriter::~CWriter()
         m_pWriter->Finalize();
     }
     SafeRelease(&m_pWriter);
+}
 
-    if (__videoFrameBuffer) {
-        delete[] __videoFrameBuffer;
+
+void CWriter::initializeSinkWriter()
+{
+    // HRESULT hr = MFCreateSinkWriterFromURL(L"output.mp4", NULL, NULL, &m_pWriter);
+    IMFByteStream* pOutStream = nullptr;
+    HRESULT hr = ::MFCreateFile(MF_ACCESSMODE_READWRITE, MF_OPENMODE_RESET_IF_EXIST, MF_FILEFLAGS_NONE, L"output.mp4", &pOutStream);
+    if (FAILED(hr)) {
+        return;
+    }
+
+    IMFMediaType* pMediaTypeOut = videoformat::createOutputMediaType(m_width, m_height, m_fps);
+    if (!pMediaTypeOut) {
+        return;
+    }
+
+    IMFMediaSink* pMp4StreamSink = nullptr;
+    ::MFCreateMPEG4MediaSink(pOutStream, pMediaTypeOut, nullptr, &pMp4StreamSink);
+    SafeRelease(&pMediaTypeOut);
+
+    IMFAttributes* pAttributes = nullptr;
+    ::MFCreateAttributes(&pAttributes, 6);
+    pAttributes->SetGUID(MF_TRANSCODE_CONTAINERTYPE, MFTranscodeContainerType_MPEG4);
+    pAttributes->SetUINT32(MF_READWRITE_ENABLE_HARDWARE_TRANSFORMS, true);
+    pAttributes->SetUINT32(MF_MPEG4SINK_MOOV_BEFORE_MDAT, true);
+    pAttributes->SetUINT32(MF_LOW_LATENCY, false);
+    pAttributes->SetUINT32(MF_SINK_WRITER_DISABLE_THROTTLING, false);
+
+    hr = ::MFCreateSinkWriterFromMediaSink(pMp4StreamSink, pAttributes, &m_pWriter);
+    if (FAILED(hr) || !m_pWriter) {
+        return;
+    }
+
+    IMFMediaType* pMediaTypeIn = videoformat::createInputMediaType(m_width, m_height, m_fps);
+    if (pMediaTypeIn) {
+        hr = m_pWriter->SetInputMediaType(m_streamIndex, pMediaTypeIn, NULL);
+        if (FAILED(hr)) {
+            return;
+        }
+    }
+
+    SafeRelease(&pMediaTypeIn);
+}
+
+void CWriter::initializeEncoder()
+{
+    ICodecAPI* pEncoder = nullptr;
+    m_pWriter->GetServiceForStream(m_streamIndex, GUID_NULL, IID_PPV_ARGS(&pEncoder));
+    if (pEncoder) {
+        constexpr UINT32 usVideoBitrateControlMode = eAVEncCommonRateControlMode_Quality;
+        SetCodecAttributeU32(pEncoder, CODECAPI_AVEncCommonRateControlMode, usVideoBitrateControlMode);
+
+        switch (usVideoBitrateControlMode) {
+        case eAVEncCommonRateControlMode_Quality:
+        {
+            constexpr UINT32 usVideoQuality = 70;
+            SetCodecAttributeU32(pEncoder, CODECAPI_AVEncCommonQuality, usVideoQuality);
+            break;
+        }
+        default:
+            break;
+        }
     }
 }
 
-HRESULT CWriter::writeFrame(const LONGLONG nsTimestamp)
+HRESULT CWriter::writeFrame(const LONGLONG nsTimestamp, UINT64 duration, CContext* ctx)
 {
-    const LONG cbWidth = 4 * m_width;
-    const DWORD cbBuffer = cbWidth * m_height;
-
     // Create a new memory buffer.
-    IMFMediaBuffer* pBuffer = NULL;
-    HRESULT hr = MFCreateMemoryBuffer(cbBuffer, &pBuffer);
-    if (FAILED(hr)) {
-        return hr;
-    }
-
-    BYTE* pData = NULL;
-    // Lock the buffer and copy the video frame to the buffer.
-    hr = pBuffer->Lock(&pData, NULL, NULL);
-    if (SUCCEEDED(hr)) {
-        hr = MFCopyImage(
-            pData,                      // Destination buffer.
-            cbWidth,                    // Destination stride.
-            (BYTE*)__videoFrameBuffer,    // First row in source image.
-            cbWidth,                    // Source stride.
-            cbWidth,                    // Image width in bytes.
-            m_height                // Image height in pixels.
-        );
-    }
-    if (pBuffer) {
-        pBuffer->Unlock();
-    }
-
-    // Set the data length of the buffer.
-    if (SUCCEEDED(hr)) {
-        hr = pBuffer->SetCurrentLength(cbBuffer);
-    }
+    IMFMediaBuffer* pBuffer = ctx->CreateMediaBuffer(m_width, m_height);
 
     // Create a media sample and add the buffer to the sample.
     IMFSample* pSample = NULL;
-    if (SUCCEEDED(hr)) {
-        hr = MFCreateSample(&pSample);
-    }
+    HRESULT hr = MFCreateSample(&pSample);
     if (SUCCEEDED(hr)) {
         hr = pSample->AddBuffer(pBuffer);
     }
@@ -180,7 +208,7 @@ HRESULT CWriter::writeFrame(const LONGLONG nsTimestamp)
         hr = pSample->SetSampleTime(nsTimestamp);
     }
     if (SUCCEEDED(hr)) {
-        hr = pSample->SetSampleDuration(m_frameDuration);
+        hr = pSample->SetSampleDuration(duration);
     }
 
     // Send the sample to the Sink Writer.

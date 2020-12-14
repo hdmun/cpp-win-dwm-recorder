@@ -45,6 +45,29 @@ bool CContext::initialize(HANDLE hSurface)
 		return false;
 	}
 
+
+	ID3D11Texture2D* pSharedTexture = nullptr;
+	hr = m_pDevice->OpenSharedResource(m_hSurface, __uuidof(ID3D11Texture2D), (void**)(&pSharedTexture));
+	if (FAILED(hr)) {
+		return false;
+	}
+
+	D3D11_TEXTURE2D_DESC desc = { 0, };
+	pSharedTexture->GetDesc(&desc);
+	::SafeRelease(&pSharedTexture);
+
+	m_desc.Width = desc.Width;
+	m_desc.Height = desc.Height;
+	m_desc.Format = desc.Format;
+	m_desc.ArraySize = 1;
+	m_desc.BindFlags = 0; // D3D11_BIND_FLAG::D3D11_BIND_RENDER_TARGET;
+	m_desc.MiscFlags = 0; // D3D11_RESOURCE_MISC_FLAG::D3D11_RESOURCE_MISC_GDI_COMPATIBLE;
+	m_desc.SampleDesc.Count = 1;
+	m_desc.SampleDesc.Quality = 0;
+	m_desc.MipLevels = 1;
+	m_desc.CPUAccessFlags = D3D11_CPU_ACCESS_FLAG::D3D11_CPU_ACCESS_READ;
+	m_desc.Usage = D3D11_USAGE::D3D11_USAGE_STAGING;
+
 	return true;
 }
 
@@ -71,12 +94,7 @@ void CContext::start(UINT32 fps)
 		return;
 	}
 
-	const UINT32 VIDEO_WIDTH = 640;
-	const UINT32 VIDEO_HEIGHT = 480;
-	const UINT64 VIDEO_FRAME_DURATION = 10 * 1000 * 1000 / fps;
-	const UINT32 VIDEO_FRAME_COUNT = 20 * fps;  // 20sec 30fps
-
-	CWriter writer(VIDEO_WIDTH, VIDEO_HEIGHT, fps);
+	CWriter writer(m_desc.Width, m_desc.Height, fps);
 
 	const UINT64 uVideoFrameDurationMillis = 1000 / fps;
 	const UINT64 uVideoFrameDuration100Nanos = uVideoFrameDurationMillis * 10 * 1000;
@@ -93,7 +111,7 @@ void CContext::start(UINT32 fps)
 			continue;
 		}
 
-		HRESULT hr = writer.writeFrame(uLastFrameStartPos);
+		HRESULT hr = writer.writeFrame(uLastFrameStartPos, uDurationSinceLastFrame100Nanos, this);
 		if (FAILED(hr)) {
 			break;
 		}
@@ -101,4 +119,90 @@ void CContext::start(UINT32 fps)
 		lastFrame = std::chrono::high_resolution_clock::now();
 		uLastFrameStartPos += uDurationSinceLastFrame100Nanos;
 	}
+}
+
+IMFMediaBuffer* CContext::CreateMediaBuffer(UINT32 width, UINT32 height) const
+{
+	ID3D11Texture2D* pTexture = GetSurfaceTexture();
+	if (!pTexture) {
+		return nullptr;
+	}
+
+	D3D11_TEXTURE2D_DESC desc = { 0, };
+	pTexture->GetDesc(&desc);
+	if (desc.Width != width || desc.Height != height) {
+		SafeRelease(&pTexture);
+		return nullptr;
+	}
+
+	const LONG cbWidth = 4 * width;
+	const DWORD cbBuffer = cbWidth * height;
+
+	IMFMediaBuffer* pBuffer = nullptr;
+	HRESULT hr = MFCreateMemoryBuffer(cbBuffer, &pBuffer);
+	if (FAILED(hr)) {
+		SafeRelease(&pTexture);
+		SafeRelease(&pBuffer);
+		return nullptr;
+	}
+
+	BYTE* pData = NULL;
+	// Lock the buffer and copy the video frame to the buffer.
+	hr = pBuffer->Lock(&pData, NULL, NULL);
+	if (SUCCEEDED(hr)) {
+		D3D11_MAPPED_SUBRESOURCE mapped = { 0, };
+		hr = m_pDeviceContext->Map(pTexture, 0, D3D11_MAP_READ, 0, &mapped);
+		if (SUCCEEDED(hr)) {
+			hr = MFCopyImage(
+				pData,                      // Destination buffer.
+				cbWidth,                    // Destination stride.
+				reinterpret_cast<BYTE*>(mapped.pData),    // First row in source image.
+				mapped.RowPitch,                    // Source stride.
+				cbWidth,                    // Image width in bytes.
+				height                // Image height in pixels.
+			);
+		}
+	}
+	if (pBuffer) {
+		pBuffer->Unlock();
+	}
+
+	if (FAILED(hr)) {
+		SafeRelease(&pTexture);
+		SafeRelease(&pBuffer);
+		return nullptr;
+	}
+
+	// Set the data length of the buffer.
+	hr = pBuffer->SetCurrentLength(cbBuffer);
+	if (FAILED(hr)) {
+		SafeRelease(&pTexture);
+		SafeRelease(&pBuffer);
+		return nullptr;
+	}
+
+	SafeRelease(&pTexture);
+	return pBuffer;
+}
+
+ID3D11Texture2D* CContext::GetSurfaceTexture() const
+{
+	ID3D11Texture2D* pFrameCopy = nullptr;
+	HRESULT hr = m_pDevice->CreateTexture2D(&m_desc, nullptr, &pFrameCopy);
+	if (FAILED(hr)) {
+		SafeRelease(&pFrameCopy);
+		return nullptr;
+	}
+
+	ID3D11Texture2D* pSharedTexture = nullptr;
+	hr = m_pDevice->OpenSharedResource(m_hSurface, __uuidof(ID3D11Texture2D), (void**)(&pSharedTexture));
+	if (FAILED(hr)) {
+		SafeRelease(&pFrameCopy);
+		SafeRelease(&pSharedTexture);
+		return nullptr;
+	}
+
+	m_pDeviceContext->CopyResource(pFrameCopy, pSharedTexture);
+	SafeRelease(&pSharedTexture);
+	return pFrameCopy;
 }
