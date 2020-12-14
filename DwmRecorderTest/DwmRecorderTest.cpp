@@ -5,6 +5,8 @@
 #include <iostream>
 
 #include "cxxopts.hpp"
+#include "../DwmRecorder/DwmRecorder.h"
+
 
 int main(int argc, char* argv[])
 {
@@ -49,6 +51,8 @@ int main(int argc, char* argv[])
     }
 
     std::cout << "DwmRecorderTest" << std::endl;
+    dwmrecorder::initialize(hFind);
 
+    dwmrecorder::finalize();
     return 0;
 }
