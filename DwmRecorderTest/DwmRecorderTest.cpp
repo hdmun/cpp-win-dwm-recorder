@@ -55,6 +55,10 @@ int main(int argc, char* argv[])
 
     dwmrecorder::start();
 
+    // wait 20 sec
+    Sleep(20 * 1000);
+
+    dwmrecorder::stop();
     dwmrecorder::finalize();
     return 0;
 }

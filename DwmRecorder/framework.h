@@ -15,6 +15,7 @@
 #pragma comment(lib, "mfuuid")
 
 #include <iostream>
+#include <future>
 
 #define LOG(format, ...) _log(format "\n", __VA_ARGS__)
 #define ERR(format, ...) LOG("Error: " format, __VA_ARGS__)
