@@ -15,3 +15,4 @@ http://ndcreplay.nexon.com/NDC2017/sessions/NDC2017_0075.html
 
 https://docs.microsoft.com/en-us/windows/win32/medfound/tutorial--using-the-sink-writer-to-encode-video
 
+https://github.com/microsoft/media-foundation
