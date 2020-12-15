@@ -53,7 +53,7 @@ int main(int argc, char* argv[])
     std::cout << "DwmRecorderTest" << std::endl;
     if (!dwmrecorder::initialize(hFind)) {
         std::cout << "failed `dwmrecorder::initialize`" << std::endl;
-        return;
+        return 1;
     }
 
     dwmrecorder::start();
