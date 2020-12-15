@@ -18,22 +18,6 @@
 #include <codecapi.h>
 #include <strmif.h>
 
-#include <iostream>
-#include <future>
-
-#define LOG(format, ...) _log(format "\n", __VA_ARGS__)
-#define ERR(format, ...) LOG("Error: " format, __VA_ARGS__)
-
-inline void _log(const char* format, ...)
-{
-	char buffer[256];
-	va_list args;
-	va_start(args, format);
-	vsprintf_s(buffer, 256, format, args);
-	OutputDebugStringA(buffer);
-	va_end(args);
-}
-
 template <class T> void SafeRelease(T** ppT)
 {
 	if (*ppT) {

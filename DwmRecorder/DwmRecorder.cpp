@@ -3,6 +3,16 @@
 #include "DwmRecorder.h"
 #include "Context.h"
 
+#if _DEBUG
+bool isLoggingEnabled = true;
+LogLevel logSeverityLevel = LogLevel::Debug;
+#else
+bool isLoggingEnabled = false;
+LogLevel logSeverityLevel = LogLevel::Info;
+#endif
+
+std::wstring logFilePath;
+
 extern "C"{
 namespace dwmrecorder
 {
@@ -23,15 +33,15 @@ std::future<void> g_record;
 
 DWMRECORDER_API bool __stdcall initialize(HWND hWnd)
 {
-	LOG("%s, HWND: 0x%x", __FUNCTION__, hWnd);
-
 	HMODULE hUser32Dll = LoadLibraryA("user32.dll");
 	if (hUser32Dll == nullptr) {
+		ERROR_LOG(L"failed to load library `user32.dll`, HWND: 0x%lx", hWnd);
 		return false;
 	}
 
 	DwmGetDxSharedSurface = (PFDwmGetDxSharedSurface)GetProcAddress(hUser32Dll, "DwmGetDxSharedSurface");
 	if (DwmGetDxSharedSurface == nullptr) {
+		ERROR_LOG(L"failed to get address `DwmGetDxSharedSurface`, HWND: 0x%lx, DLL: 0x%lx", hWnd, hUser32Dll);
 		return false;
 	}
 
@@ -42,6 +52,7 @@ DWMRECORDER_API bool __stdcall initialize(HWND hWnd)
 	ULONGLONG pWin32kUpdateId = 0;
 	BOOL bSuccess = DwmGetDxSharedSurface(hWnd, &hSurface, &adapterLuid, &pFmtWindow, &pPresentFlags, &pWin32kUpdateId);
 	if (!bSuccess || !hSurface) {
+		ERROR_LOG(L"failed to call `DwmGetDxSharedSurface`, HWND: 0x%lx, DLL: 0x%lx, ret: %d, hSurface: 0x%lx", hWnd, hUser32Dll, bSuccess, hSurface);
 		return false;
 	}
 
@@ -50,8 +61,6 @@ DWMRECORDER_API bool __stdcall initialize(HWND hWnd)
 
 DWMRECORDER_API void __stdcall finalize()
 {
-	LOG(__FUNCTION__);
-
 	g_ctx.finalize();
 }
 

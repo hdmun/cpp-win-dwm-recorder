@@ -91,6 +91,7 @@
     <ClInclude Include="Context.h" />
     <ClInclude Include="DwmRecorder.h" />
     <ClInclude Include="framework.h" />
+    <ClInclude Include="log.h" />
     <ClInclude Include="pch.h" />
     <ClInclude Include="Writer.h" />
   </ItemGroup>

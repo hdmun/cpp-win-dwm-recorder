@@ -31,8 +31,6 @@ CContext::~CContext()
 
 bool CContext::initialize(HANDLE hSurface)
 {
-	LOG(__FUNCTION__);
-
 	m_hSurface = hSurface;
 
 	D3D_FEATURE_LEVEL pFeatureLevel;
@@ -73,7 +71,7 @@ bool CContext::initialize(HANDLE hSurface)
 
 void CContext::finalize()
 {
-	LOG(__FUNCTION__);
+	INFO_LOG(L"finalize CContext");
 
 	m_hSurface = nullptr;
 	if (m_pDeviceContext) {
@@ -88,9 +86,8 @@ void CContext::finalize()
 
 void CContext::start(UINT32 fps)
 {
-	LOG(__FUNCTION__);
-
 	if (m_bRecording) {
+		INFO_LOG(L"already recording");
 		return;
 	}
 
