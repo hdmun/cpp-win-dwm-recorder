@@ -13,8 +13,24 @@ http://ndcreplay.nexon.com/NDC2017/sessions/NDC2017_0075.html
 
 ## Reference
 
+### Tutorial: Using the Sink Writer to Encode Video
+
+MMF를 사용해 20초 짜리 녹색화면 wmv 파일을 생성하는 예제
+
 https://docs.microsoft.com/en-us/windows/win32/medfound/tutorial--using-the-sink-writer-to-encode-video
 
+### IAudioClient interface (audioclient.h)
+
+https://docs.microsoft.com/en-us/windows/win32/api/audioclient/nn-audioclient-iaudioclient
+
+### Repository
+
+#### microsoft/media-foundation
+
 https://github.com/microsoft/media-foundation
+
+#### sskodje/ScreenRecorderLib
+
+가장 좋은 예제
 
 https://github.com/sskodje/ScreenRecorderLib
