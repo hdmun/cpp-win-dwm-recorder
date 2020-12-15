@@ -130,9 +130,8 @@ CWriter::~CWriter()
 
 void CWriter::initializeSinkWriter()
 {
-    // HRESULT hr = MFCreateSinkWriterFromURL(L"output.mp4", NULL, NULL, &m_pWriter);
     IMFByteStream* pOutStream = nullptr;
-    HRESULT hr = ::MFCreateFile(MF_ACCESSMODE_READWRITE, MF_OPENMODE_RESET_IF_EXIST, MF_FILEFLAGS_NONE, L"output.mp4", &pOutStream);
+    HRESULT hr = ::MFCreateFile(MF_ACCESSMODE_READWRITE, MF_OPENMODE_DELETE_IF_EXIST, MF_FILEFLAGS_NONE, L"output.mp4", &pOutStream);
     if (FAILED(hr)) {
         return;
     }
