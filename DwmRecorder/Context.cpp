@@ -31,8 +31,6 @@ CContext::~CContext()
 
 bool CContext::initialize(HANDLE hSurface)
 {
-	LOG(__FUNCTION__);
-
 	m_hSurface = hSurface;
 
 	D3D_FEATURE_LEVEL pFeatureLevel;
@@ -42,6 +40,7 @@ bool CContext::initialize(HANDLE hSurface)
 		&m_pDevice, &pFeatureLevel, &m_pDeviceContext
 	);
 	if (FAILED(hr)) {
+		ERROR_LOG(L"failed to `D3D11CreateDevice`, hr: 0x%lx, hSurface: 0x%lx", hr, hSurface);
 		return false;
 	}
 
@@ -49,6 +48,7 @@ bool CContext::initialize(HANDLE hSurface)
 	ID3D11Texture2D* pSharedTexture = nullptr;
 	hr = m_pDevice->OpenSharedResource(m_hSurface, __uuidof(ID3D11Texture2D), (void**)(&pSharedTexture));
 	if (FAILED(hr)) {
+		ERROR_LOG(L"failed to `OpenSharedResource`, hr: 0x%lx, hSurface: 0x%lx", hr, hSurface);
 		return false;
 	}
 
@@ -73,7 +73,7 @@ bool CContext::initialize(HANDLE hSurface)
 
 void CContext::finalize()
 {
-	LOG(__FUNCTION__);
+	INFO_LOG(L"finalize CContext");
 
 	m_hSurface = nullptr;
 	if (m_pDeviceContext) {
@@ -88,9 +88,8 @@ void CContext::finalize()
 
 void CContext::start(UINT32 fps)
 {
-	LOG(__FUNCTION__);
-
 	if (m_bRecording) {
+		INFO_LOG(L"already recording");
 		return;
 	}
 
