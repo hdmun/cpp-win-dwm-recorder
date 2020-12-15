@@ -40,6 +40,7 @@ bool CContext::initialize(HANDLE hSurface)
 		&m_pDevice, &pFeatureLevel, &m_pDeviceContext
 	);
 	if (FAILED(hr)) {
+		ERROR_LOG(L"failed to `D3D11CreateDevice`, hr: 0x%lx, hSurface: 0x%lx", hr, hSurface);
 		return false;
 	}
 
@@ -47,6 +48,7 @@ bool CContext::initialize(HANDLE hSurface)
 	ID3D11Texture2D* pSharedTexture = nullptr;
 	hr = m_pDevice->OpenSharedResource(m_hSurface, __uuidof(ID3D11Texture2D), (void**)(&pSharedTexture));
 	if (FAILED(hr)) {
+		ERROR_LOG(L"failed to `OpenSharedResource`, hr: 0x%lx, hSurface: 0x%lx", hr, hSurface);
 		return false;
 	}
 
