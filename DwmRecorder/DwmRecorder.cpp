@@ -1,7 +1,7 @@
 ﻿#include "pch.h"
 #include "framework.h"
 #include "DwmRecorder.h"
-#include "Context.h"
+#include "Recorder.h"
 
 #if _DEBUG
 bool isLoggingEnabled = true;
@@ -28,7 +28,7 @@ typedef BOOL(WINAPI* PFDwmGetDxSharedSurface)(
 
 
 PFDwmGetDxSharedSurface DwmGetDxSharedSurface = nullptr;
-CContext g_ctx;
+CRecorder g_ctx;
 std::future<void> g_record;
 
 DWMRECORDER_API bool __stdcall initialize()
@@ -67,7 +67,7 @@ DWMRECORDER_API void __stdcall start(HWND hWnd)
 	}
 
 	UINT32 fps = 30;
-	g_record = std::async(std::launch::async, &CContext::start, &g_ctx, hSurface, fps);
+	g_record = std::async(std::launch::async, &CRecorder::start, &g_ctx, hSurface, fps);
 }
 
 DWMRECORDER_API void __stdcall stop()

@@ -1,9 +1,9 @@
 #include "pch.h"
-#include "Context.h"
+#include "Recorder.h"
 #include "Writer.h"
 
 
-CContext::CContext()
+CRecorder::CRecorder()
 	: m_hSurface(nullptr)
 	, m_pDevice(nullptr)
 	, m_pDeviceContext(nullptr)
@@ -23,13 +23,13 @@ CContext::CContext()
 	}
 }
 
-CContext::~CContext()
+CRecorder::~CRecorder()
 {
 	::MFShutdown();
 	::CoUninitialize();
 }
 
-bool CContext::initialize()
+bool CRecorder::initialize()
 {
 	D3D_FEATURE_LEVEL pFeatureLevel;
 	UINT Flags = D3D11_CREATE_DEVICE_DEBUG | D3D11_CREATE_DEVICE_SINGLETHREADED;
@@ -45,7 +45,7 @@ bool CContext::initialize()
 	return true;
 }
 
-void CContext::finalize()
+void CRecorder::finalize()
 {
 	INFO_LOG(L"finalize CContext");
 
@@ -60,7 +60,7 @@ void CContext::finalize()
 	}
 }
 
-void CContext::start(HANDLE hSurface, UINT32 fps)
+void CRecorder::start(HANDLE hSurface, UINT32 fps)
 {
 	if (m_bRecording) {
 		INFO_LOG(L"already recording");
@@ -102,7 +102,7 @@ void CContext::start(HANDLE hSurface, UINT32 fps)
 	}
 }
 
-bool CContext::initializeSurfaceHandle(HANDLE hSurface)
+bool CRecorder::initializeSurfaceHandle(HANDLE hSurface)
 {
 	m_hSurface = hSurface;
 
@@ -132,7 +132,7 @@ bool CContext::initializeSurfaceHandle(HANDLE hSurface)
 	return true;
 }
 
-IMFMediaBuffer* CContext::createVideoBuffer(UINT32 width, UINT32 height) const
+IMFMediaBuffer* CRecorder::createVideoBuffer(UINT32 width, UINT32 height) const
 {
 	ID3D11Texture2D* pTexture = createSurfaceTexture();
 	if (!pTexture) {
@@ -196,7 +196,7 @@ IMFMediaBuffer* CContext::createVideoBuffer(UINT32 width, UINT32 height) const
 	return pBuffer;
 }
 
-ID3D11Texture2D* CContext::createSurfaceTexture() const
+ID3D11Texture2D* CRecorder::createSurfaceTexture() const
 {
 	ID3D11Texture2D* pFrameCopy = nullptr;
 	HRESULT hr = m_pDevice->CreateTexture2D(&m_desc, nullptr, &pFrameCopy);

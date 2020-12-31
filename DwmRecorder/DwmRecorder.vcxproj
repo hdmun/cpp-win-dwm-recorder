@@ -88,7 +88,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="Context.h" />
+    <ClInclude Include="Recorder.h" />
     <ClInclude Include="DwmRecorder.h" />
     <ClInclude Include="framework.h" />
     <ClInclude Include="log.h" />
@@ -96,7 +96,7 @@
     <ClInclude Include="Writer.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="Context.cpp" />
+    <ClCompile Include="Recorder.cpp" />
     <ClCompile Include="DwmRecorder.cpp" />
     <ClCompile Include="pch.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>

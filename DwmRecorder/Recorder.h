@@ -1,10 +1,10 @@
 #pragma once
 
-class CContext
+class CRecorder
 {
 public:
-	CContext();
-	virtual ~CContext();
+	CRecorder();
+	virtual ~CRecorder();
 
 	bool initialize();
 	void finalize();
