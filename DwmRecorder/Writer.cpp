@@ -1,6 +1,5 @@
 #include "pch.h"
 #include "Writer.h"
-#include "Context.h"
 
 namespace videoformat {
 
@@ -190,10 +189,9 @@ void CWriter::initializeEncoder()
     }
 }
 
-HRESULT CWriter::writeFrame(const LONGLONG nsTimestamp, UINT64 duration, CContext* ctx)
+HRESULT CWriter::writeFrame(IMFMediaBuffer* pBuffer, const LONGLONG nsTimestamp, UINT64 duration)
 {
-    // Create a new memory buffer.
-    IMFMediaBuffer* pBuffer = ctx->CreateMediaBuffer(m_width, m_height);
+    // Input Parameter a new memory buffer. `IMFMediaBuffer* pBuffer`
 
     // Create a media sample and add the buffer to the sample.
     IMFSample* pSample = NULL;

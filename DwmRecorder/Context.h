@@ -12,10 +12,9 @@ public:
 	void start(HANDLE hSurface, UINT32 fps);
 	void stop() { m_bRecording = false; }
 
-	IMFMediaBuffer* CreateMediaBuffer(UINT32 width, UINT32 height) const;
-
 private:
 	bool initializeSurfaceHandle(HANDLE hSurface);
+	IMFMediaBuffer* createMediaBuffer(UINT32 width, UINT32 height) const;
 	ID3D11Texture2D* GetSurfaceTexture() const;
 
 private:

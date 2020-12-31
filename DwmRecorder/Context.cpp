@@ -86,7 +86,13 @@ void CContext::start(HANDLE hSurface, UINT32 fps)
 			continue;
 		}
 
-		HRESULT hr = writer.writeFrame(uLastFrameStartPos, uDurationSinceLastFrame100Nanos, this);
+		IMFMediaBuffer* pBuffer = createMediaBuffer(m_desc.Width, m_desc.Height);
+		if (!pBuffer) {
+			ERROR_LOG(L"failed to `CreateMediaBuffer`");
+			break;
+		}
+
+		HRESULT hr = writer.writeFrame(pBuffer, uLastFrameStartPos, uDurationSinceLastFrame100Nanos);
 		if (FAILED(hr)) {
 			break;
 		}
@@ -96,7 +102,37 @@ void CContext::start(HANDLE hSurface, UINT32 fps)
 	}
 }
 
-IMFMediaBuffer* CContext::CreateMediaBuffer(UINT32 width, UINT32 height) const
+bool CContext::initializeSurfaceHandle(HANDLE hSurface)
+{
+	m_hSurface = hSurface;
+
+	ID3D11Texture2D* pSharedTexture = nullptr;
+	HRESULT hr = m_pDevice->OpenSharedResource(m_hSurface, __uuidof(ID3D11Texture2D), (void**)(&pSharedTexture));
+	if (FAILED(hr)) {
+		ERROR_LOG(L"failed to `OpenSharedResource`, hr: 0x%lx", hr);
+		return false;
+	}
+
+	D3D11_TEXTURE2D_DESC desc = { 0, };
+	pSharedTexture->GetDesc(&desc);
+	::SafeRelease(&pSharedTexture);
+
+	m_desc.Width = desc.Width;
+	m_desc.Height = desc.Height;
+	m_desc.Format = desc.Format;
+	m_desc.ArraySize = 1;
+	m_desc.BindFlags = 0; // D3D11_BIND_FLAG::D3D11_BIND_RENDER_TARGET;
+	m_desc.MiscFlags = 0; // D3D11_RESOURCE_MISC_FLAG::D3D11_RESOURCE_MISC_GDI_COMPATIBLE;
+	m_desc.SampleDesc.Count = 1;
+	m_desc.SampleDesc.Quality = 0;
+	m_desc.MipLevels = 1;
+	m_desc.CPUAccessFlags = D3D11_CPU_ACCESS_FLAG::D3D11_CPU_ACCESS_READ;
+	m_desc.Usage = D3D11_USAGE::D3D11_USAGE_STAGING;
+
+	return true;
+}
+
+IMFMediaBuffer* CContext::createMediaBuffer(UINT32 width, UINT32 height) const
 {
 	ID3D11Texture2D* pTexture = GetSurfaceTexture();
 	if (!pTexture) {
@@ -158,36 +194,6 @@ IMFMediaBuffer* CContext::CreateMediaBuffer(UINT32 width, UINT32 height) const
 
 	SafeRelease(&pTexture);
 	return pBuffer;
-}
-
-bool CContext::initializeSurfaceHandle(HANDLE hSurface)
-{
-	m_hSurface = hSurface;
-
-	ID3D11Texture2D* pSharedTexture = nullptr;
-	HRESULT hr = m_pDevice->OpenSharedResource(m_hSurface, __uuidof(ID3D11Texture2D), (void**)(&pSharedTexture));
-	if (FAILED(hr)) {
-		ERROR_LOG(L"failed to `OpenSharedResource`, hr: 0x%lx", hr);
-		return false;
-	}
-
-	D3D11_TEXTURE2D_DESC desc = { 0, };
-	pSharedTexture->GetDesc(&desc);
-	::SafeRelease(&pSharedTexture);
-
-	m_desc.Width = desc.Width;
-	m_desc.Height = desc.Height;
-	m_desc.Format = desc.Format;
-	m_desc.ArraySize = 1;
-	m_desc.BindFlags = 0; // D3D11_BIND_FLAG::D3D11_BIND_RENDER_TARGET;
-	m_desc.MiscFlags = 0; // D3D11_RESOURCE_MISC_FLAG::D3D11_RESOURCE_MISC_GDI_COMPATIBLE;
-	m_desc.SampleDesc.Count = 1;
-	m_desc.SampleDesc.Quality = 0;
-	m_desc.MipLevels = 1;
-	m_desc.CPUAccessFlags = D3D11_CPU_ACCESS_FLAG::D3D11_CPU_ACCESS_READ;
-	m_desc.Usage = D3D11_USAGE::D3D11_USAGE_STAGING;
-
-	return true;
 }
 
 ID3D11Texture2D* CContext::GetSurfaceTexture() const

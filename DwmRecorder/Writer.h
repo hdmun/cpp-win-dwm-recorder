@@ -1,7 +1,5 @@
 #pragma once
 
-class CContext;
-
 class CWriter
 {
 public:
@@ -13,7 +11,7 @@ private:
 	void initializeEncoder();
 
 public:
-	HRESULT writeFrame(const LONGLONG nsTimestamp, UINT64 duration, CContext* ctx);
+	HRESULT writeFrame(IMFMediaBuffer* pBuffer, const LONGLONG nsTimestamp, UINT64 duration);
 
 private:
 	UINT32 m_width;
