@@ -86,7 +86,7 @@ void CContext::start(HANDLE hSurface, UINT32 fps)
 			continue;
 		}
 
-		IMFMediaBuffer* pBuffer = createMediaBuffer(m_desc.Width, m_desc.Height);
+		IMFMediaBuffer* pBuffer = createVideoBuffer(m_desc.Width, m_desc.Height);
 		if (!pBuffer) {
 			ERROR_LOG(L"failed to `CreateMediaBuffer`");
 			break;
@@ -132,9 +132,9 @@ bool CContext::initializeSurfaceHandle(HANDLE hSurface)
 	return true;
 }
 
-IMFMediaBuffer* CContext::createMediaBuffer(UINT32 width, UINT32 height) const
+IMFMediaBuffer* CContext::createVideoBuffer(UINT32 width, UINT32 height) const
 {
-	ID3D11Texture2D* pTexture = GetSurfaceTexture();
+	ID3D11Texture2D* pTexture = createSurfaceTexture();
 	if (!pTexture) {
 		return nullptr;
 	}
@@ -196,7 +196,7 @@ IMFMediaBuffer* CContext::createMediaBuffer(UINT32 width, UINT32 height) const
 	return pBuffer;
 }
 
-ID3D11Texture2D* CContext::GetSurfaceTexture() const
+ID3D11Texture2D* CContext::createSurfaceTexture() const
 {
 	ID3D11Texture2D* pFrameCopy = nullptr;
 	HRESULT hr = m_pDevice->CreateTexture2D(&m_desc, nullptr, &pFrameCopy);

@@ -14,8 +14,8 @@ public:
 
 private:
 	bool initializeSurfaceHandle(HANDLE hSurface);
-	IMFMediaBuffer* createMediaBuffer(UINT32 width, UINT32 height) const;
-	ID3D11Texture2D* GetSurfaceTexture() const;
+	IMFMediaBuffer* createVideoBuffer(UINT32 width, UINT32 height) const;
+	ID3D11Texture2D* createSurfaceTexture() const;
 
 private:
 	HANDLE m_hSurface;
