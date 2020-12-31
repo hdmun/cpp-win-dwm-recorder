@@ -7,6 +7,7 @@ CRecorder::CRecorder()
 	: m_hSurface(nullptr)
 	, m_pDevice(nullptr)
 	, m_pDeviceContext(nullptr)
+	, m_desc{ 0, }
 	, m_bRecording( false )
 {
 	{
@@ -47,7 +48,7 @@ bool CRecorder::initialize()
 
 void CRecorder::finalize()
 {
-	INFO_LOG(L"finalize CContext");
+	INFO_LOG(L"finalize CRecorder");
 
 	m_hSurface = nullptr;
 	if (m_pDeviceContext) {
