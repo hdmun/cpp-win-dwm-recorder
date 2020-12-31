@@ -21,10 +21,10 @@ namespace dwmrecorder
 #endif  // #ifndef DWMRECORDER_API
 
 
-DWMRECORDER_API bool __stdcall initialize(HWND hWnd);
+DWMRECORDER_API bool __stdcall initialize();
 DWMRECORDER_API void __stdcall finalize();
 
-DWMRECORDER_API void __stdcall start();
+DWMRECORDER_API void __stdcall start(HWND hWnd);
 DWMRECORDER_API void __stdcall stop();
 
 }

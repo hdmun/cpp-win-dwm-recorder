@@ -6,15 +6,16 @@ public:
 	CContext();
 	virtual ~CContext();
 
-	bool initialize(HANDLE hSurface);
+	bool initialize();
 	void finalize();
 
-	void start(UINT32 fps);
+	void start(HANDLE hSurface, UINT32 fps);
 	void stop() { m_bRecording = false; }
 
 	IMFMediaBuffer* CreateMediaBuffer(UINT32 width, UINT32 height) const;
 
 private:
+	bool initializeSurfaceHandle(HANDLE hSurface);
 	ID3D11Texture2D* GetSurfaceTexture() const;
 
 private:

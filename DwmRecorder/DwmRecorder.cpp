@@ -31,32 +31,21 @@ PFDwmGetDxSharedSurface DwmGetDxSharedSurface = nullptr;
 CContext g_ctx;
 std::future<void> g_record;
 
-DWMRECORDER_API bool __stdcall initialize(HWND hWnd)
+DWMRECORDER_API bool __stdcall initialize()
 {
 	HMODULE hUser32Dll = LoadLibraryA("user32.dll");
 	if (hUser32Dll == nullptr) {
-		ERROR_LOG(L"failed to load library `user32.dll`, HWND: 0x%lx", hWnd);
+		ERROR_LOG(L"failed to load library `user32.dll`");
 		return false;
 	}
 
 	DwmGetDxSharedSurface = (PFDwmGetDxSharedSurface)GetProcAddress(hUser32Dll, "DwmGetDxSharedSurface");
 	if (DwmGetDxSharedSurface == nullptr) {
-		ERROR_LOG(L"failed to get address `DwmGetDxSharedSurface`, HWND: 0x%lx, DLL: 0x%lx", hWnd, hUser32Dll);
+		ERROR_LOG(L"failed to get address `DwmGetDxSharedSurface`, DLL: 0x%lx", hUser32Dll);
 		return false;
 	}
 
-	HANDLE hSurface = nullptr;
-	LUID adapterLuid = { 0, };
-	ULONG pFmtWindow = 0;
-	ULONG pPresentFlags = 0;
-	ULONGLONG pWin32kUpdateId = 0;
-	BOOL bSuccess = DwmGetDxSharedSurface(hWnd, &hSurface, &adapterLuid, &pFmtWindow, &pPresentFlags, &pWin32kUpdateId);
-	if (!bSuccess || !hSurface) {
-		ERROR_LOG(L"failed to call `DwmGetDxSharedSurface`, HWND: 0x%lx, DLL: 0x%lx, ret: %d, hSurface: 0x%lx", hWnd, hUser32Dll, bSuccess, hSurface);
-		return false;
-	}
-
-	return g_ctx.initialize(hSurface);
+	return g_ctx.initialize();
 }
 
 DWMRECORDER_API void __stdcall finalize()
@@ -64,10 +53,21 @@ DWMRECORDER_API void __stdcall finalize()
 	g_ctx.finalize();
 }
 
-DWMRECORDER_API void __stdcall start()
+DWMRECORDER_API void __stdcall start(HWND hWnd)
 {
+	HANDLE hSurface = nullptr;
+	LUID adapterLuid = { 0, };
+	ULONG pFmtWindow = 0;
+	ULONG pPresentFlags = 0;
+	ULONGLONG pWin32kUpdateId = 0;
+	BOOL bSuccess = DwmGetDxSharedSurface(hWnd, &hSurface, &adapterLuid, &pFmtWindow, &pPresentFlags, &pWin32kUpdateId);
+	if (!bSuccess || !hSurface) {
+		ERROR_LOG(L"failed to call `DwmGetDxSharedSurface`, HWND: 0x%lx, ret: %d, hSurface: 0x%lx", hWnd, bSuccess, hSurface);
+		return;
+	}
+
 	UINT32 fps = 30;
-	g_record = std::async(std::launch::async, &CContext::start, &g_ctx, fps);
+	g_record = std::async(std::launch::async, &CContext::start, &g_ctx, hSurface, fps);
 }
 
 DWMRECORDER_API void __stdcall stop()

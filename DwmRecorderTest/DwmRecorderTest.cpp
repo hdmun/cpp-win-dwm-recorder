@@ -51,12 +51,12 @@ int main(int argc, char* argv[])
     }
 
     std::cout << "DwmRecorderTest" << std::endl;
-    if (!dwmrecorder::initialize(hFind)) {
+    if (!dwmrecorder::initialize()) {
         std::cout << "failed `dwmrecorder::initialize`" << std::endl;
         return 1;
     }
 
-    dwmrecorder::start();
+    dwmrecorder::start(hFind);
 
     // wait 20 sec
     Sleep(20 * 1000);
