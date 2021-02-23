@@ -71,7 +71,7 @@ void CRecorder::start(HANDLE hSurface, dwmrecorder::Config config)
 
 	initializeSurfaceHandle(hSurface);
 
-	CWriter writer(m_desc.Width, m_desc.Height, config.usFps, config.usVideoRate, config.usVideoQuality);
+	CWriter writer(m_desc.Width, m_desc.Height, config.usFps, config.usVideoRate, config.usVideoQuality, config.wsFileName);
 
 	const UINT64 uVideoFrameDurationMillis = 1000 / config.usFps;
 	const UINT64 uVideoFrameDuration100Nanos = uVideoFrameDurationMillis * 10 * 1000;

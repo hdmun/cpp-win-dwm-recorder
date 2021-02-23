@@ -62,6 +62,7 @@ int main(int argc, char* argv[])
     }
 
     dwmrecorder::Config config;
+    config.wsFileName = L"testFromConfigFile.mp4";
     dwmrecorder::start(hFind, config);
 
     // wait 20 sec

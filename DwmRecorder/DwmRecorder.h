@@ -7,6 +7,7 @@ namespace dwmrecorder
 
 struct Config
 {
+	LPCWSTR wsFileName{ nullptr };
 	UINT32 usFps{ 30 };
 	UINT32 usVideoRate{ 8 * 1 * 1024 * 1024 };  // 1MB
 	UINT32 usVideoQuality{ 70 };

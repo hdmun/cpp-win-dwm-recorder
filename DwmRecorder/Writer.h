@@ -3,11 +3,11 @@
 class CWriter
 {
 public:
-	CWriter(UINT32 width, UINT32 height, UINT32 fps, UINT32 videBitRate, UINT32 videoQuality);
+	CWriter(UINT32 width, UINT32 height, UINT32 fps, UINT32 videBitRate, UINT32 videoQuality, LPCWSTR pwszFileURL);
 	virtual ~CWriter();
 
 private:
-	void initializeSinkWriter();
+	void initializeSinkWriter(LPCWSTR pwszFileURL);
 	void initializeEncoder();
 
 public:

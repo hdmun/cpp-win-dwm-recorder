@@ -13,7 +13,7 @@ public:
 	bool initialize();
 	void finalize();
 
-	void start(HANDLE hSurface, dwmrecorder::Config config);
+	void start(HANDLE hSurface, const dwmrecorder::Config& config);
 	void stop() { m_bRecording = false; }
 
 private:

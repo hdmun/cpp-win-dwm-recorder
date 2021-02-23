@@ -101,7 +101,7 @@ HRESULT SetCodecAttributeU32(ICodecAPI* pCodec, const GUID& guid, UINT32 value)
 }
 
 
-CWriter::CWriter(UINT32 width, UINT32 height, UINT32 fps, UINT32 videoBitRate, UINT32 videoQuality)
+CWriter::CWriter(UINT32 width, UINT32 height, UINT32 fps, UINT32 videoBitRate, UINT32 videoQuality, LPCWSTR pwszFileURL)
     : m_width(width)
     , m_height(height)
     , m_fps(fps)
@@ -110,7 +110,7 @@ CWriter::CWriter(UINT32 width, UINT32 height, UINT32 fps, UINT32 videoBitRate, U
     , m_streamIndex(0)
     , m_pWriter(nullptr)
 {
-    initializeSinkWriter();
+    initializeSinkWriter(pwszFileURL);
     initializeEncoder();
 
     HRESULT hr = m_pWriter->BeginWriting();
@@ -128,10 +128,10 @@ CWriter::~CWriter()
 }
 
 
-void CWriter::initializeSinkWriter()
+void CWriter::initializeSinkWriter(LPCWSTR pwszFileURL)
 {
     IMFByteStream* pOutStream = nullptr;
-    HRESULT hr = ::MFCreateFile(MF_ACCESSMODE_READWRITE, MF_OPENMODE_DELETE_IF_EXIST, MF_FILEFLAGS_NONE, L"output.mp4", &pOutStream);
+    HRESULT hr = ::MFCreateFile(MF_ACCESSMODE_READWRITE, MF_OPENMODE_DELETE_IF_EXIST, MF_FILEFLAGS_NONE, pwszFileURL, &pOutStream);
     if (FAILED(hr)) {
         return;
     }
