@@ -1,5 +1,9 @@
 #pragma once
 
+namespace dwmrecorder {
+struct Config;
+}
+
 class CRecorder
 {
 public:
@@ -9,7 +13,7 @@ public:
 	bool initialize();
 	void finalize();
 
-	void start(HANDLE hSurface, UINT32 fps);
+	void start(HANDLE hSurface, dwmrecorder::Config config);
 	void stop() { m_bRecording = false; }
 
 private:

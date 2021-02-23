@@ -48,7 +48,7 @@ IMFMediaType* _createMediaType(UINT32 width, UINT32 height, UINT32 fps) {
 
 }
 
-IMFMediaType* createOutputMediaType(UINT32 width, UINT32 height, UINT32 fps)
+IMFMediaType* createOutputMediaType(UINT32 width, UINT32 height, UINT32 fps, UINT32 uVideBitRate)
 {
     IMFMediaType* pMediaTypeOut = _createMediaType(width, height, fps);
     if (!pMediaTypeOut) {
@@ -61,8 +61,7 @@ IMFMediaType* createOutputMediaType(UINT32 width, UINT32 height, UINT32 fps)
         return nullptr;
     }
 
-    constexpr UINT32 VIDEO_BIT_RATE = 800000;
-    hr = pMediaTypeOut->SetUINT32(MF_MT_AVG_BITRATE, VIDEO_BIT_RATE);
+    hr = pMediaTypeOut->SetUINT32(MF_MT_AVG_BITRATE, uVideBitRate);
     if (FAILED(hr)) {
         SafeRelease(&pMediaTypeOut);
         return nullptr;
@@ -102,10 +101,12 @@ HRESULT SetCodecAttributeU32(ICodecAPI* pCodec, const GUID& guid, UINT32 value)
 }
 
 
-CWriter::CWriter(UINT32 width, UINT32 height, UINT32 fps)
+CWriter::CWriter(UINT32 width, UINT32 height, UINT32 fps, UINT32 videoBitRate, UINT32 videoQuality)
     : m_width(width)
     , m_height(height)
     , m_fps(fps)
+    , m_videoBitRate(videoBitRate)
+    , m_videoQuality(videoQuality)
     , m_streamIndex(0)
     , m_pWriter(nullptr)
 {
@@ -135,7 +136,7 @@ void CWriter::initializeSinkWriter()
         return;
     }
 
-    IMFMediaType* pMediaTypeOut = videoformat::createOutputMediaType(m_width, m_height, m_fps);
+    IMFMediaType* pMediaTypeOut = videoformat::createOutputMediaType(m_width, m_height, m_fps, m_videoBitRate);
     if (!pMediaTypeOut) {
         return;
     }
@@ -179,8 +180,7 @@ void CWriter::initializeEncoder()
         switch (usVideoBitrateControlMode) {
         case eAVEncCommonRateControlMode_Quality:
         {
-            constexpr UINT32 usVideoQuality = 70;
-            SetCodecAttributeU32(pEncoder, CODECAPI_AVEncCommonQuality, usVideoQuality);
+            SetCodecAttributeU32(pEncoder, CODECAPI_AVEncCommonQuality, m_videoQuality);
             break;
         }
         default:

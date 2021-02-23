@@ -1,4 +1,5 @@
 #include "pch.h"
+#include "DwmRecorder.h"
 #include "Recorder.h"
 #include "Writer.h"
 
@@ -61,7 +62,7 @@ void CRecorder::finalize()
 	}
 }
 
-void CRecorder::start(HANDLE hSurface, UINT32 fps)
+void CRecorder::start(HANDLE hSurface, dwmrecorder::Config config)
 {
 	if (m_bRecording) {
 		INFO_LOG(L"already recording");
@@ -70,9 +71,9 @@ void CRecorder::start(HANDLE hSurface, UINT32 fps)
 
 	initializeSurfaceHandle(hSurface);
 
-	CWriter writer(m_desc.Width, m_desc.Height, fps);
+	CWriter writer(m_desc.Width, m_desc.Height, config.usFps, config.usVideoRate, config.usVideoQuality);
 
-	const UINT64 uVideoFrameDurationMillis = 1000 / fps;
+	const UINT64 uVideoFrameDurationMillis = 1000 / config.usFps;
 	const UINT64 uVideoFrameDuration100Nanos = uVideoFrameDurationMillis * 10 * 1000;
 
 	m_bRecording = true;

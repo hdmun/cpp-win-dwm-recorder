@@ -53,7 +53,7 @@ DWMRECORDER_API void __stdcall finalize()
 	g_ctx.finalize();
 }
 
-DWMRECORDER_API void __stdcall start(HWND hWnd)
+DWMRECORDER_API void __stdcall start(HWND hWnd, Config config)
 {
 	HANDLE hSurface = nullptr;
 	LUID adapterLuid = { 0, };
@@ -66,8 +66,7 @@ DWMRECORDER_API void __stdcall start(HWND hWnd)
 		return;
 	}
 
-	UINT32 fps = 30;
-	g_record = std::async(std::launch::async, &CRecorder::start, &g_ctx, hSurface, fps);
+	g_record = std::async(std::launch::async, &CRecorder::start, &g_ctx, hSurface, config);
 }
 
 DWMRECORDER_API void __stdcall stop()
