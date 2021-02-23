@@ -51,12 +51,18 @@ int main(int argc, char* argv[])
     }
 
     std::cout << "DwmRecorderTest" << std::endl;
+    if (!dwmrecorder::initializeModule()) {
+        std::cout << "failed `dwmrecorder::initializeModule`" << std::endl;
+        return 1;
+    }
+
     if (!dwmrecorder::initialize()) {
         std::cout << "failed `dwmrecorder::initialize`" << std::endl;
         return 1;
     }
 
-    dwmrecorder::start(hFind);
+    dwmrecorder::Config config;
+    dwmrecorder::start(hFind, config);
 
     // wait 20 sec
     Sleep(20 * 1000);
