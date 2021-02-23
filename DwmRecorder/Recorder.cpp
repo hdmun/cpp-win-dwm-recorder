@@ -62,7 +62,7 @@ void CRecorder::finalize()
 	}
 }
 
-void CRecorder::start(HANDLE hSurface, dwmrecorder::Config config)
+void CRecorder::start(HANDLE hSurface, const dwmrecorder::Config& config)
 {
 	if (m_bRecording) {
 		INFO_LOG(L"already recording");

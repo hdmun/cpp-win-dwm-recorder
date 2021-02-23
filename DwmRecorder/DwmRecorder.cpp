@@ -53,7 +53,7 @@ DWMRECORDER_API void __stdcall finalize()
 	g_ctx.finalize();
 }
 
-DWMRECORDER_API void __stdcall start(HWND hWnd, Config config)
+DWMRECORDER_API void __stdcall start(HWND hWnd, const Config& config)
 {
 	HANDLE hSurface = nullptr;
 	LUID adapterLuid = { 0, };

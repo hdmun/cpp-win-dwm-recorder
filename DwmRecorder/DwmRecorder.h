@@ -23,14 +23,14 @@ struct Config
 DWMRECORDER_API bool __stdcall initialize();
 DWMRECORDER_API void __stdcall finalize();
 
-DWMRECORDER_API void __stdcall start(HWND hWnd, Config config);
+DWMRECORDER_API void __stdcall start(HWND hWnd, const Config& config);
 DWMRECORDER_API void __stdcall stop();
 
 #else
 
 typedef bool (*_initialize)();
 typedef bool (*_finalize)();
-typedef bool (*_start)(HWND, Config);
+typedef bool (*_start)(HWND, const Config&);
 typedef bool (*_stop)();
 
 __declspec(selectany) _initialize pfnInitialize = nullptr;
